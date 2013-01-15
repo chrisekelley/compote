@@ -1,0 +1,27 @@
+{
+   "_id": "7bd76ebedbf555f8561b801c1400680d",
+   "assessmentId": "0018504d-1aa8-6b5c-a1b9-fcdb910cab16",
+   "assessmentName": "Compote Test Jan 2013",
+   "timestamp": 1348319952843,
+   "enumerator": "abbot",
+   "subtestData": [
+       {
+           "name": "School ID",
+           "data": {
+               "labels": [
+                   "SchoolName",
+                   "SchoolCode",
+                   "Zone",
+                   "Region"
+               ],
+               "location": [
+                   "Jones School",
+                   "12345",
+                   "Bingo",
+                   "Nashville"
+               ]
+           }
+       }
+   ],
+   "collection": "result"
+}
