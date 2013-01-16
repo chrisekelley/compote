@@ -2,6 +2,7 @@ class Router extends Backbone.Router
   routes:
     "": "default"
     "reports": "default"
+    "reports/*options": "default"
 
   route: (route, name, callback) ->
     Backbone.history || (Backbone.history = new Backbone.History)

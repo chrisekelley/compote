@@ -13,7 +13,8 @@ Router = (function(_super) {
 
   Router.prototype.routes = {
     "": "default",
-    "reports": "default"
+    "reports": "default",
+    "reports/*options": "default"
   };
 
   Router.prototype.route = function(route, name, callback) {

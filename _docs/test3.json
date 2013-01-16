@@ -5,23 +5,23 @@
    "timestamp": 1348665552843,
    "enumerator": "wangila",
    "subtestData": [
-       {
-           "name": "School ID",
-           "data": {
-               "labels": [
-                   "SchoolName",
-                   "SchoolCode",
-                   "Zone",
-                   "Region"
-               ],
-               "location": [
-                      "Jones School",
-                      "12345",
-                      "Bingo",
-                      "Nashville"
-                  ]
-           }
-       }
+   {
+       "name": "School information",
+       "data": {
+           "labels": ["Name", "Code", "Division", "Region", "Sample"],
+           "location": ["Vetula Elementary", "111111", "Catalan", "Spain", "Practice"]
+       },
+       "subtestHash": "piZFt2G48o/isRz9yA0WkMbPSLU=",
+       "subtestId": "3bf292b2-8fa5-4631-07f3-bf33ae4dbf8d",
+       "prototype": "location",
+       "sum": {
+           "correct": 5,
+           "incorrect": 0,
+           "missing": 0,
+           "total": 5
+       },
+       "timestamp": 1357780208802
+   }
    ],
    "collection": "result"
 }

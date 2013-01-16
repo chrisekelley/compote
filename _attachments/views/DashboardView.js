@@ -12,25 +12,33 @@ DashboardView = (function(_super) {
     this.render = __bind(this.render, this);
 
     this.update = __bind(this.update, this);
+
+    this.updateDashboard = __bind(this.updateDashboard, this);
     return DashboardView.__super__.constructor.apply(this, arguments);
   }
 
   DashboardView.prototype.initialize = function() {
-    return $("html").append("      <link href='js-libraries/Leaflet/leaflet.css' type='text/css' rel='stylesheet' />      <script type='text/javascript' src='js-libraries/Leaflet/leaflet.js'></script>      <script type='text/javascript'>      function toggle(div1) {          var el = document.getElementById(div1);          if (el.style.display != '')          {              el.style.display = '';          } else {              el.style.display = 'none';          }      }      </script>      <style>        .dissaggregatedResults{          display: none;        }      </style>    ");
+    return $("html").append("      <script type='text/javascript'>        function toggle(div) {            var el = document.getElementById(div);            if (el.style.display != '') {                el.style.display = '';            } else {                el.style.display = 'none';            }        }      </script>    ");
   };
 
   DashboardView.prototype.el = '#content';
 
+  DashboardView.prototype.events = {
+    "change #report-type": "update"
+  };
+
+  DashboardView.prototype.updateDashboard = function() {
+    var reportTypeSelected;
+    reportTypeSelected = $('#report-type').val();
+    return alert("reportTypeSelected: " + reportTypeSelected);
+  };
+
   DashboardView.prototype.update = function() {
     var reportOptions, url;
     reportOptions = {
-      startDate: $('#start').val(),
-      endDate: $('#end').val(),
       reportType: $('#report-type :selected').text()
     };
-    _.each(this.locationTypes, function(location) {
-      return reportOptions[location] = $("#" + location + " :selected").text();
-    });
+    this.reportType = reportOptions.reportType || "dashboard";
     url = "reports/" + _.map(reportOptions, function(value, key) {
       return "" + key + "/" + (escape(value));
     }).join("/");
@@ -39,61 +47,29 @@ DashboardView = (function(_super) {
 
   DashboardView.prototype.render = function(options) {
     this.reportType = options.reportType || "results";
+    this.reportOutput = "results";
     this.startDate = options.startDate || moment(new Date).subtract('days', 30).format("YYYY-MM-DD");
     this.endDate = options.endDate || moment(new Date).format("YYYY-MM-DD");
     this.$el.html("    <style>      table.results th.header, table.results td{        font-size:150%;      }    </style>    <table id='reportOptions'></table>    ");
-    this[this.reportType]();
-    $('div[data-role=fieldcontain]').fieldcontain();
-    $('select').selectmenu();
-    return $('input[type=date]').datebox({
-      mode: "calbox"
-    });
-  };
-
-  DashboardView.prototype.hierarchyOptions = function(locationType, location) {
-    if (locationType === "region") {
-      return _.keys(WardHierarchy.hierarchy);
-    }
-    return _.chain(WardHierarchy.hierarchy).map(function(value, key) {
-      if (locationType === "district" && location === key) {
-        return _.keys(value);
-      }
-      return _.map(value, function(value, key) {
-        if (locationType === "constituan" && location === key) {
-          return _.keys(value);
-        }
-        return _.map(value, function(value, key) {
-          if (locationType === "shehia" && location === key) {
-            return value;
-          }
-        });
-      });
-    }).flatten().compact().value();
-  };
-
-  DashboardView.prototype.mostSpecificLocationSelected = function() {
-    var mostSpecificLocationType, mostSpecificLocationValue;
-    mostSpecificLocationType = "region";
-    mostSpecificLocationValue = "ALL";
-    _.each(this.locationTypes, function(locationType) {
-      if (this[locationType] !== "ALL") {
-        mostSpecificLocationType = locationType;
-        return mostSpecificLocationValue = this[locationType];
-      }
-    });
-    return {
-      type: mostSpecificLocationType,
-      name: mostSpecificLocationValue
-    };
-  };
-
-  DashboardView.prototype.formFilterTemplate = function(options) {
-    return "        <tr>          <td>            <label style='display:inline' for='" + options.id + "'>" + options.label + "</label>           </td>          <td style='width:150%'>            " + options.form + "            </select>          </td>        </tr>    ";
+    return this[this.reportOutput]();
   };
 
   DashboardView.prototype.viewQuery = function(options) {
     var results;
     results = new DashboardCollection();
+    if (this.reportType === "enumerator") {
+      results.comparator = function(result) {
+        var date;
+        date = new Date(result.get('timestamp'));
+        return [new String(result.get('enumerator')), date.getTime()];
+      };
+    } else {
+      results.comparator = function(result) {
+        var date;
+        date = new Date(result.get('timestamp'));
+        return [new String(result.get('subtestData')[0].data.location[0]), date.getTime()];
+      };
+    }
     return results.fetch({
       question: $('#selected-question').val(),
       isComplete: true,
@@ -118,7 +94,7 @@ DashboardView = (function(_super) {
     this.$el.append("      <table id='results' class='tablesorter'>        <thead>        </thead>        <tbody>        </tbody>      </table>    ");
     return this.viewQuery({
       success: function(results) {
-        var currentEnumerator, e, endDate, enumeratorTDs, enumeratorVisitsPerDay, headerVisitDate, headerVisitDates, headerVisitDatesTH, hiddenInfoPerDay, s, startDate, tableData, visitDate, visitDates, _i, _len;
+        var currentEnumerator, detailInfo, e, endDate, enumeratorTDs, enumeratorVisitsPerDay, headerVisitDate, headerVisitDates, headerVisitDatesTH, hiddenInfoPerDay, identifier, reportType, s, startDate, tableData, visitDate, visitDates, _i, _len;
         tableData = results.map(function(result) {
           return _.map(results.fields, function(field) {
             return result.get(field);
@@ -167,37 +143,48 @@ DashboardView = (function(_super) {
           }
           return _results;
         })();
-        $("table#results thead").append("<tr><th class=\"header\">Enumerator</th>" + headerVisitDatesTH + "</tr>");
+        $("table#results thead").append(("<tr><th class=\"header\">        <select data-role='selector' id='report-type'>                " + (_.map(["enumerator", "schoolname"], function(type) {
+          return "<option " + (type === _this.reportType ? "selected='true'" : void 0) + ">" + type + "</option>";
+        }).join("")) + "              </select>              </th>") + headerVisitDatesTH + "</tr>");
+        reportType = _this.reportType;
         currentEnumerator = null;
         enumeratorVisitsPerDay = {};
         enumeratorTDs = "";
+        detailInfo = "";
         hiddenInfoPerDay = {};
         results.each(function(row) {
-          var assessmentId, id, timestamp, timestampDateFmt, _i, _len;
+          var assessmentId, id, identifier, reportSortField, timestamp, timestampDateFmt, _i, _len;
           timestamp = row.get('timestamp');
           timestampDateFmt = $.format.date(new Date(timestamp), "dd/MM/yyyy");
           id = row.get('_id');
           assessmentId = row.get('assessmentId');
-          if (currentEnumerator !== row.get('enumerator')) {
+          if (reportType === "enumerator") {
+            reportSortField = row.get('enumerator');
+          } else {
+            reportSortField = row.get('subtestData')[0].data.location[0];
+            detailInfo = "<br/>School: " + row.get('subtestData')[0].data.location[0] + "<br/>Code: " + row.get('subtestData')[0].data.location[1] + "<br/>Division: " + row.get('subtestData')[0].data.location[2] + "<br/>Region: " + row.get('subtestData')[0].data.location[3] + "<br/>Sample: " + row.get('subtestData')[0].data.location[4] + "<br/><br/>Records: ";
+          }
+          if (currentEnumerator !== reportSortField) {
             if (currentEnumerator === null) {
-              currentEnumerator = row.get('enumerator');
+              currentEnumerator = reportSortField;
               enumeratorVisitsPerDay[timestampDateFmt] = 1;
               hiddenInfoPerDay[timestampDateFmt] = timestampDateFmt + " : " + assessmentId + "<br/>\n";
               return enumeratorTDs = "<tr><td>" + currentEnumerator + "</td>";
             } else {
               for (_i = 0, _len = headerVisitDates.length; _i < _len; _i++) {
                 headerVisitDate = headerVisitDates[_i];
+                identifier = currentEnumerator.replace(/\s/g, "") + headerVisitDate;
                 if (enumeratorVisitsPerDay[headerVisitDate] !== void 0) {
-                  enumeratorTDs = enumeratorTDs + "<td id=\"" + currentEnumerator + headerVisitDate + "\" onClick=\"toggle('hidden_" + currentEnumerator + headerVisitDate + "')\">" + enumeratorVisitsPerDay[headerVisitDate] + "<span id=\"hidden_" + currentEnumerator + headerVisitDate + "\" style=\"display: none;\"><br/>" + hiddenInfoPerDay[headerVisitDate] + "</span></td>";
+                  enumeratorTDs = enumeratorTDs + "<td id=\"" + identifier + "\" onClick=\"toggle('hidden_" + identifier + "')\">" + enumeratorVisitsPerDay[headerVisitDate] + "<span id=\"hidden_" + identifier + "\" style=\"display: none;\">" + detailInfo + "<br/>" + hiddenInfoPerDay[headerVisitDate] + "</span></td>";
                 } else {
-                  enumeratorTDs = enumeratorTDs + "<td id=\"" + currentEnumerator + headerVisitDate + "\">0</td>";
+                  enumeratorTDs = enumeratorTDs + "<td id=\"" + identifier + "\">0</td>";
                 }
               }
               $("table#results tbody").append(enumeratorTDs);
               enumeratorTDs = "";
               enumeratorVisitsPerDay = {};
               hiddenInfoPerDay = {};
-              currentEnumerator = row.get('enumerator');
+              currentEnumerator = reportSortField;
               enumeratorTDs = "<tr><td>" + currentEnumerator + "</td>";
               hiddenInfoPerDay[timestampDateFmt] = timestampDateFmt + " : " + assessmentId + "<br/>\n";
               if (enumeratorVisitsPerDay[timestampDateFmt] === void 0) {
@@ -221,10 +208,11 @@ DashboardView = (function(_super) {
         });
         for (_i = 0, _len = headerVisitDates.length; _i < _len; _i++) {
           headerVisitDate = headerVisitDates[_i];
+          identifier = currentEnumerator.replace(/\s/g, "") + headerVisitDate;
           if (enumeratorVisitsPerDay[headerVisitDate] !== void 0) {
-            enumeratorTDs = enumeratorTDs + "<td id=\"" + currentEnumerator + headerVisitDate + "\" onClick=\"toggle('hidden_" + currentEnumerator + headerVisitDate + "')\">" + enumeratorVisitsPerDay[headerVisitDate] + "<span id=\"hidden_" + currentEnumerator + headerVisitDate + "\" style=\"display: none;\"><br/>" + hiddenInfoPerDay[headerVisitDate] + "</span></td>";
+            enumeratorTDs = enumeratorTDs + "<td id=\"" + identifier + "\" onClick=\"toggle('hidden_" + identifier + "')\">" + enumeratorVisitsPerDay[headerVisitDate] + "<span id=\"hidden_" + identifier + "\" style=\"display: none;\">" + detailInfo + "<br/>" + hiddenInfoPerDay[headerVisitDate] + "</span></td>";
           } else {
-            enumeratorTDs = enumeratorTDs + "<td id=\"" + currentEnumerator + headerVisitDate + "\">0</td>";
+            enumeratorTDs = enumeratorTDs + "<td id=\"" + identifier + "\">0</td>";
           }
         }
         $("table#results tbody").append(enumeratorTDs);

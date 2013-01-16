@@ -1,9 +1,6 @@
 class DashboardCollection extends Backbone.Collection
   model: Dashboard
   url: '/result'
-  comparator: (result) ->
-    date = new Date(result.get('timestamp'))
-    [new String(result.get('enumerator')),date.getTime()]
   db:
     view: "resultsByQuestionAndComplete"
 

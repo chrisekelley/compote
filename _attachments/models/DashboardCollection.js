@@ -15,12 +15,6 @@ DashboardCollection = (function(_super) {
 
   DashboardCollection.prototype.url = '/result';
 
-  DashboardCollection.prototype.comparator = function(result) {
-    var date;
-    date = new Date(result.get('timestamp'));
-    return [new String(result.get('enumerator')), date.getTime()];
-  };
-
   DashboardCollection.prototype.db = {
     view: "resultsByQuestionAndComplete"
   };

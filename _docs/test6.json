@@ -1,27 +1,27 @@
 {
    "_id": "7bd76ebedbf555f8561b801c1400680d",
-   "assessmentId": "0018504d-1aa8-6b5c-a1b9-fcdb910cab16",
+   "assessmentId": "0018504d-1aa8-6b5c-a1b9-fcdb910cab17",
    "assessmentName": "Compote Test Jan 2013",
-   "timestamp": 1348319952843,
-   "enumerator": "abbot",
+   "timestamp": 1348838352843,
+   "enumerator": "bobo",
    "subtestData": [
-       {
-           "name": "School ID",
-           "data": {
-               "labels": [
-                   "SchoolName",
-                   "SchoolCode",
-                   "Zone",
-                   "Region"
-               ],
-               "location": [
-                   "Jones School",
-                   "12345",
-                   "Bingo",
-                   "Nashville"
-               ]
-           }
-       }
+   {
+       "name": "School information",
+       "data": {
+           "labels": ["Name", "Code", "Division", "Region", "Sample"],
+           "location": ["Vetula HS", "111112", "Catalan", "Spain", "Practice"]
+       },
+       "subtestHash": "piZFt2G48o/isRz9yA0WkMbPSLU=",
+       "subtestId": "3bf292b2-8fa5-4631-07f3-bf33ae4dbf8d",
+       "prototype": "location",
+       "sum": {
+           "correct": 5,
+           "incorrect": 0,
+           "missing": 0,
+           "total": 5
+       },
+       "timestamp": 1357780208802
+   }
    ],
    "collection": "result"
 }
